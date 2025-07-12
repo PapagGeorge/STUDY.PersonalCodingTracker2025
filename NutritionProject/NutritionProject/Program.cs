@@ -1,3 +1,7 @@
+using Application.Interfaces;
+using Infrastructure;
+using System.Net.Http.Headers;
+
 namespace NutritionProject
 {
     public class Program
@@ -9,6 +13,14 @@ namespace NutritionProject
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddHttpClient("ExternalApiClient", client =>
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
+            builder.Services.AddScoped<IApiHttpClient, ApiHttpClient>();
+
 
             var app = builder.Build();
 
