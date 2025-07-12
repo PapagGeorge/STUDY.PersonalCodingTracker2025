@@ -11,9 +11,9 @@ namespace Domain.GetNutritionData
         public string Measure { get; set; }
 
         [JsonPropertyName("seq")]
-        public int? Seq { get; set; }
+        public double? Seq { get; set; }
 
         [JsonPropertyName("qty")]
-        public int? Qty { get; set; }
+        public double? Qty { get; set; }
     }
 }

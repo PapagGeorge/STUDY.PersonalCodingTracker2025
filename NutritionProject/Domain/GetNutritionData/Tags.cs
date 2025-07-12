@@ -14,9 +14,9 @@ namespace Domain.GetNutritionData
         public string Quantity { get; set; }
 
         [JsonPropertyName("food_group")]
-        public int? FoodGroup { get; set; }
+        public double? FoodGroup { get; set; }
 
         [JsonPropertyName("tag_id")]
-        public int? TagId { get; set; }
+        public double? TagId { get; set; }
     }
 }

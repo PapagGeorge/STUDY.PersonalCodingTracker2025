@@ -5,6 +5,6 @@ namespace Application.Interfaces
 {
     public interface INutritionService
     {
-        Task<GetNutritionDataResponse> GetNutritionDataAsync(GetNutritionDataRequest request);
+        Task<GetNutritionDataResponseDto> GetNutritionDataAsync(GetNutritionDataRequest request);
     }
 }

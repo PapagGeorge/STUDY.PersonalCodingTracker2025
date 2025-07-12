@@ -21,8 +21,5 @@ namespace Domain.GetNutritionDataDTOs
 
         [JsonPropertyName("servingDescription")]
         public string ServingDescription { get; set; } = string.Empty;
-
-        [JsonPropertyName("full_nutrients")]
-        public List<FullNutrientDto> FullNutrients { get; set; } = string.Empty;
     }
 }

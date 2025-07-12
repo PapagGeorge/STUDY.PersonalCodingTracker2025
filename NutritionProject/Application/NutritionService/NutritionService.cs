@@ -13,9 +13,10 @@ namespace Application.NutritionService
             _nutritionixClient = nutritionixClient;
         }
 
-        public async Task<GetNutritionDataResponse> GetNutritionDataAsync(GetNutritionDataRequest request)
+        public async Task<GetNutritionDataResponseDto> GetNutritionDataAsync(GetNutritionDataRequest request)
         {
-            var response =  await _nutritionixClient.GetNutritionDataAsync(request);
+            var nutritionixResponse =  await _nutritionixClient.GetNutritionDataAsync(request);
+            var response = nutritionixResponse.ToNutritionResponse();
             return response;
         }
     }

@@ -77,10 +77,10 @@ namespace Domain.GetNutritionData
         public Metadata Metadata { get; set; }
 
         [JsonPropertyName("source")]
-        public int? Source { get; set; }
+        public double? Source { get; set; }
 
         [JsonPropertyName("ndbNo")]
-        public int? NdbNo { get; set; }
+        public double? NdbNo { get; set; }
 
         [JsonPropertyName("tags")]
         public Tags Tags { get; set; }
@@ -95,7 +95,7 @@ namespace Domain.GetNutritionData
         public double? Lng { get; set; }
 
         [JsonPropertyName("meal_type")]
-        public int? MealType { get; set; }
+        public double? MealType { get; set; }
 
         [JsonPropertyName("photo")]
         public Photo Photo { get; set; }
