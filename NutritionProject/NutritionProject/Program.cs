@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.NutritionService;
 using Infrastructure;
 using System.Net.Http.Headers;
 
@@ -20,7 +21,8 @@ namespace NutritionProject
             });
 
             builder.Services.AddScoped<IApiHttpClient, ApiHttpClient>();
-
+            builder.Services.AddTransient<INutritionixClient, NutritionixClient>();
+            builder.Services.AddTransient<INutritionService, NutritionService>();
 
             var app = builder.Build();
 

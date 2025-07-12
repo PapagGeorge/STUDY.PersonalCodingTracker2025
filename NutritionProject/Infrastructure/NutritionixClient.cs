@@ -4,12 +4,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure
 {
-    public class NutritionClient : INutritionixClient
+    public class NutritionixClient : INutritionixClient
     {
         private readonly IApiHttpClient _apiHttpClient;
         private readonly IConfiguration _configuration;
 
-        public NutritionClient(IApiHttpClient apiHttpClient, IConfiguration configuration)
+        public NutritionixClient(IApiHttpClient apiHttpClient, IConfiguration configuration)
         {
             _apiHttpClient = apiHttpClient;
             _configuration = configuration;
