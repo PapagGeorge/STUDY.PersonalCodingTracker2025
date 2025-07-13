@@ -19,7 +19,9 @@ namespace Application.NutritionService
         public async Task<GetNutritionDataResponseDto> GetNutritionDataAsync(GetNutritionDataRequest request)
         {
             var nutritionixResponse = await _nutritionixClient.GetNutritionDataAsync(request);
-            return nutritionixResponse.ToNutritionResponse();
+            var response =  nutritionixResponse.ToNutritionResponse();
+            _logger.LogInformation("Response from Nutritionix Api successfully mapped");
+            return response;
         }
     }
 

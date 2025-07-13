@@ -19,6 +19,7 @@ namespace Infrastructure
 
         public async Task<TResponse> PostAsync<TRequest, TResponse>(    string uri, TRequest data, Dictionary<string, string>? headers = null)
         {
+            _logger.LogInformation("Sending POST request to {Uri}", uri);
             try
             {
                 var client = _httpClientFactory.CreateClient("ExternalApiClient");
@@ -38,6 +39,7 @@ namespace Infrastructure
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("POST request to {Uri} succeeded with status code {StatusCode}", uri, response.StatusCode);
                 return JsonSerializer.Deserialize<TResponse>(content)!;
             }
             catch (HttpRequestException ex)
