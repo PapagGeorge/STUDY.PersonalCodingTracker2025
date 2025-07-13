@@ -45,7 +45,7 @@ namespace Infrastructure
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "HTTP request failed for {Uri}", uri);
-                throw new ExternalApiException("Error communicating with external API.", ex);
+                throw new ExternalApiException("Error with external API.", ex);
             }
             catch (Exception ex)
             {
