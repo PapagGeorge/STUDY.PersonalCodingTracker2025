@@ -12,11 +12,13 @@ namespace NutritionProject.Controllers
     public class NutritionController : ControllerBase
     {
         private readonly INutritionService _nutritionService;
+        private readonly IApiPerformanceTracker _performanceTracker;
         private readonly ILogger<NutritionixClient> _logger;
 
-        public NutritionController(INutritionService nutritionService, ILogger<NutritionixClient> logger)
+        public NutritionController(INutritionService nutritionService, IApiPerformanceTracker performanceTracker, ILogger<NutritionixClient> logger)
         {
             _nutritionService = nutritionService;
+            _performanceTracker = performanceTracker;
             _logger = logger;
         }
 
@@ -31,6 +33,13 @@ namespace NutritionProject.Controllers
                 return NotFound(new { message = "No nutrition data found." });
             }
             return Ok(result);
+        }
+
+        [HttpGet("getPerformanceData")]
+        public IActionResult GetPerformanceData()
+        {
+            var data = _performanceTracker.GetAllPerformanceData();
+            return Ok(data);
         }
     }
 }

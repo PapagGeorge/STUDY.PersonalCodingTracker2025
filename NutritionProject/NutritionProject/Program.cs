@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.NutritionService;
+using Application.PerformanceTrackingHandler;
 using Infrastructure;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
@@ -18,15 +19,20 @@ namespace NutritionProject
 
             builder.Services.AddControllers();
 
-            builder.Services.AddHttpClient("ExternalApiClient", client =>
-            {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            });
-
             builder.Services.AddScoped<IApiHttpClient, ApiHttpClient>();
             builder.Services.AddTransient<INutritionixClient, NutritionixClient>();
             builder.Services.AddTransient<INutritionService, NutritionService>();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSingleton<IApiPerformanceTracker, ApiPerformanceTracker>();
+
+            builder.Services.AddHttpClient("ExternalApiClient", client =>
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            })
+            .AddHttpMessageHandler<PerformanceTrackingHandler>();
+
+            builder.Services.AddTransient<PerformanceTrackingHandler>();
 
             builder.Services.AddCors(options =>
             {
