@@ -20,13 +20,16 @@ namespace Infrastructure
         public async Task<TResponse> PostAsync<TRequest, TResponse>(    string uri, TRequest data, Dictionary<string, string>? headers = null)
         {
             _logger.LogInformation("Sending POST request to {Uri}", uri);
+            var requestContent = JsonSerializer.Serialize(data);
+            _logger.LogInformation("Request content: {RequestContent}", requestContent);
+
             try
             {
                 var client = _httpClientFactory.CreateClient("ExternalApiClient");
 
                 var request = new HttpRequestMessage(HttpMethod.Post, uri)
                 {
-                    Content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json")
+                    Content = new StringContent(requestContent, Encoding.UTF8, "application/json")
                 };
 
                 if (headers != null)
@@ -38,7 +41,8 @@ namespace Infrastructure
                 var response = await client.SendAsync(request);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                _logger.LogDebug("Received response (status: {StatusCode}) from {Uri}: {ResponseContent}",
+
+                _logger.LogInformation("Received response (status: {StatusCode}) from {Uri}: {ResponseContent}",
                     (int)response.StatusCode, uri, responseContent);
 
                 response.EnsureSuccessStatusCode();
