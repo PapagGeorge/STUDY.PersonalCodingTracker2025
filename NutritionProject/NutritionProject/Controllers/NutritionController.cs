@@ -22,10 +22,9 @@ namespace NutritionProject.Controllers
         {
             var result = await _nutritionService.GetNutritionDataAsync(request);
 
-                if(!result.Foods.Any())
-            {
-                return NotFound();
-            }
+            if (!result.Foods.Any())
+                return NotFound(new { message = "No nutrition data found." });
+
             return Ok(result);
         }
     }
