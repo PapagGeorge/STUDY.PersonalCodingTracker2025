@@ -36,11 +36,14 @@ namespace Infrastructure
                 }
 
                 var response = await client.SendAsync(request);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug("Received response (status: {StatusCode}) from {Uri}: {ResponseContent}",
+                    (int)response.StatusCode, uri, responseContent);
+
                 response.EnsureSuccessStatusCode();
 
-                var content = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("POST request to {Uri} succeeded with status code {StatusCode}", uri, response.StatusCode);
-                return JsonSerializer.Deserialize<TResponse>(content)!;
+                return JsonSerializer.Deserialize<TResponse>(responseContent)!;
             }
             catch (HttpRequestException ex)
             {
