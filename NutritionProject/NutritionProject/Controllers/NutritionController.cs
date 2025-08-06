@@ -2,7 +2,6 @@
 using Domain.GetNutritionData;
 using Domain.GetNutritionDataDTOs;
 using Infrastructure;
-using Microsoft.AspNetCore.Http;    
 using Microsoft.AspNetCore.Mvc;
 
 namespace NutritionProject.Controllers
