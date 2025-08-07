@@ -24,7 +24,7 @@
 
         public record RevokeTokenRequest(string RefreshToken);
 
-        public record UserDTO(
+        public record UserDto(
             Guid Id,
             string UserName,
             string Email,
