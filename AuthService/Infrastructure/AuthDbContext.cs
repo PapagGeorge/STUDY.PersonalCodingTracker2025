@@ -41,7 +41,7 @@ namespace Infrastructure
                 entity.Property(x => x.Description).HasMaxLength(200);
             });
 
-            //UserRole Configuration (Many-toMany)
+            //UserRole Configuration (Many-to-Many)
             modelBuilder.Entity<UserRole>(entity =>
             {
                 entity.HasKey(x => new { x.UserId, x.RoleId });
@@ -82,14 +82,14 @@ namespace Infrastructure
                     Id = adminRoleId,
                     Name = "Admin",
                     Description = "Administrator role with full access",
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 },
                 new Role
                 {
                     Id = userRoleId,
                     Name = "User",
                     Description = "Standard user role",
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 });
         }
     }

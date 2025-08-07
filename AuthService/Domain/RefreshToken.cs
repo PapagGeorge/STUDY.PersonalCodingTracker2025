@@ -13,7 +13,7 @@ namespace Domain
         public string ReplacedByToken { get; set; }
         public string CreatedByIp { get; set; }
         public Guid UserId { get; set; }
-        public bool IsExpired  => DateTime.Now >= ExpiresAt;
+        public bool IsExpired  => DateTime.UtcNow >= ExpiresAt;
         public bool IsRevoked => RevokedAt != null;
         public bool IsActive => !IsRevoked && !IsExpired;
 

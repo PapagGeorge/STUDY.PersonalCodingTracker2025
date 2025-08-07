@@ -9,6 +9,8 @@ namespace Domain
         public DateTime AssignedAt { get; set; }
         public DateTime? RevokedAt { get; set; }
 
+        public bool IsRevoked { get; set; } = false;
+
         //Navigation Properties
         public User User { get; set; } = null!;
         public Role Role { get; set; } = null!;
