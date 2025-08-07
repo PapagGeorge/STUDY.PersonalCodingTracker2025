@@ -1,3 +1,5 @@
+using Infrastructure;
+
 namespace AuthService
 {
     public class Program
@@ -9,6 +11,7 @@ namespace AuthService
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddInfrastructure(builder.Configuration);
 
             var app = builder.Build();
 
