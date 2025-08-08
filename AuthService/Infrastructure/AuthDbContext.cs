@@ -73,8 +73,9 @@ namespace Infrastructure
             });
 
             //Seed Default Roles
-            var adminRoleId = Guid.NewGuid();
-            var userRoleId = Guid.NewGuid();
+            var adminRoleId = new Guid("8a1e2f9f-d3e6-4f2e-8b6c-2e08b18e0035");
+            var userRoleId = new Guid("7c3d9bb9-7f7c-4b09-b16e-d35f3fcfa3a7");
+            var createdAt = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc); // Static time
 
             modelBuilder.Entity<Role>().HasData(
                 new Role
@@ -82,14 +83,14 @@ namespace Infrastructure
                     Id = adminRoleId,
                     Name = "Admin",
                     Description = "Administrator role with full access",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = createdAt
                 },
                 new Role
                 {
                     Id = userRoleId,
                     Name = "User",
                     Description = "Standard user role",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = createdAt
                 });
         }
     }

@@ -1,8 +1,10 @@
 using Application;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using System;
 
 namespace AuthService
 {
@@ -22,7 +24,6 @@ namespace AuthService
             builder.Services.AddApplication();
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddAuthorization();
-
 
             var app = builder.Build();
 

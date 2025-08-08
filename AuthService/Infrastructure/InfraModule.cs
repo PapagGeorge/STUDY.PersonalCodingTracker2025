@@ -14,8 +14,8 @@ namespace Infrastructure
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddDbContext<AuthDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+                x => x.MigrationsAssembly("Infrastructure")));
             return services;
         }
     }
