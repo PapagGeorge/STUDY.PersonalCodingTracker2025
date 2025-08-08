@@ -169,7 +169,7 @@ namespace Application.Implementation
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
             if (refreshToken == null || !refreshToken.IsActive)
-                throw new InvalidOperationException("Token not gound or already revoked");
+                throw new InvalidOperationException("Token not found or already revoked");
 
             refreshToken.RevokedAt = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;

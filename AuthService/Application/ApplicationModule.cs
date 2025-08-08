@@ -22,7 +22,7 @@ namespace Application
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("Jwt");
-            var secretKey = jwtSettings["secretKey"] ?? throw new ArgumentNullException("Jwt:SecretKey not found");
+            var secretKey = jwtSettings["SecretKey"] ?? throw new ArgumentNullException("Jwt:SecretKey not found");
 
             services.AddAuthentication(options =>
             {

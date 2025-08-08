@@ -1,10 +1,7 @@
 using Application;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using System;
 
 namespace AuthService
 {
@@ -25,6 +22,13 @@ namespace AuthService
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddAuthorization();
 
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddEventLog(settings =>
+            {
+                settings.SourceName = "AuthService";
+                settings.LogName = "AuthService";
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
