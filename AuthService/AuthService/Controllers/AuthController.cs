@@ -1,0 +1,244 @@
+﻿using Application;
+using Application.Interfaces;
+using Application.Types;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace AuthService.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    private readonly IAuthService _authService;
+    private readonly ILogger<AuthController> _logger;
+
+    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    {
+        _authService = authService;
+        _logger = logger;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] AuthDTOs.LoginRequest request)
+    {
+        try
+        {
+            var ipAddress = GetIpAddress();
+            var response = await _authService.LoginAsync(request, ipAddress);
+
+            SetRefreshTokenCookie(response.RefreshToken);
+
+            return Ok(new
+            {
+                userId = response.UserId,
+                username = response.Username,
+                email = response.Email,
+                accessToken = response.AccessToken,
+                expiresAt = response.ExpiresAt,
+                roles = response.Roles
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Login failed for email {Email}: {Error}", request.Email, ex.Message);
+            return Unauthorized(new { message = "Invalid credentials" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during login for email {Email}", request.Email);
+            return StatusCode(500, new { message = "An error occurred during login" });
+        }
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] AuthDTOs.RegisterRequest request)
+    {
+        try
+        {
+            var ipAddress = GetIpAddress();
+            var response = await _authService.RegisterAsync(request, ipAddress);
+
+            SetRefreshTokenCookie(response.RefreshToken);
+
+            return Ok(new
+            {
+                userId = response.UserId,
+                username = response.Username,
+                email = response.Email,
+                accessToken = response.AccessToken,
+                expiresAt = response.ExpiresAt,
+                roles = response.Roles
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Registration failed for email {Email}: {Error}", request.Email, ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during registration for email {Email}", request.Email);
+            return StatusCode(500, new { message = "An error occurred during registration" });
+        }
+    }
+
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        try
+        {
+            var refreshToken = GetRefreshTokenFromCookie() ?? Request.Headers["RefreshToken"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(refreshToken))
+                return BadRequest(new { message = "Refresh token is required" });
+
+            var ipAddress = GetIpAddress();
+            var request = new AuthDTOs.RefreshTokenRequest(refreshToken);
+            var response = await _authService.RefreshTokenAsync(request, ipAddress);
+
+            SetRefreshTokenCookie(response.RefreshToken);
+
+            return Ok(new
+            {
+                userId = response.UserId,
+                username = response.Username,
+                email = response.Email,
+                accessToken = response.AccessToken,
+                expiresAt = response.ExpiresAt,
+                roles = response.Roles
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Token refresh failed: {Error}", ex.Message);
+            return Unauthorized(new { message = "Invalid refresh token" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during token refresh");
+            return StatusCode(500, new { message = "An error occurred during token refresh" });
+        }
+    }
+
+    [HttpPost("revoke-token")]
+    [Authorize]
+    public async Task<IActionResult> RevokeToken([FromBody] AuthDTOs.RevokeTokenRequest? request = null)
+    {
+        try
+        {
+            var token = request?.RefreshToken ?? GetRefreshTokenFromCookie();
+
+            if (string.IsNullOrEmpty(token))
+                return BadRequest(new { message = "Token is required" });
+
+            var ipAddress = GetIpAddress();
+            var revokeRequest = new AuthDTOs.RevokeTokenRequest(token);
+            await _authService.RevokeTokenAsync(revokeRequest, ipAddress);
+
+            return Ok(new { message = "Token revoked" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Token revocation failed: {Error}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during token revocation");
+            return StatusCode(500, new { message = "An error occurred during token revocation" });
+        }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var user = await _authService.GetUserByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting current user");
+            return StatusCode(500, new { message = "An error occurred" });
+        }
+    }
+
+    [HttpPost("validate-token")]
+    public async Task<IActionResult> ValidateToken([FromBody] AuthDTOs.ValidateTokenRequest request)
+    {
+        try
+        {
+            var isValid = await _authService.ValidateTokenAsync(request.Token);
+            return Ok(new { isValid });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating token");
+            return StatusCode(500, new { message = "An error occurred during token validation" });
+        }
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        try
+        {
+            var refreshToken = GetRefreshTokenFromCookie();
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                var ipAddress = GetIpAddress();
+                var revokeRequest = new AuthDTOs.RevokeTokenRequest(refreshToken);
+                await _authService.RevokeTokenAsync(revokeRequest, ipAddress);
+            }
+
+            // Clear refresh token cookie
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok(new { message = "Logged out successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during logout");
+            return StatusCode(500, new { message = "An error occurred during logout" });
+        }
+    }
+
+    private string GetIpAddress()
+    {
+        var ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (string.IsNullOrEmpty(ipAddress))
+            ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        return ipAddress ?? "Unknown";
+    }
+
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
+    private string? GetRefreshTokenFromCookie()
+    {
+        return Request.Cookies["refreshToken"];
+    }
+}

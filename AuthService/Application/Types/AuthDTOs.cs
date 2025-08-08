@@ -13,7 +13,7 @@
 
         public record AuthResponse(
             Guid UserId,
-            string UserName,
+            string Username,
             string Email,
             string AccessToken,
             string RefreshToken,
