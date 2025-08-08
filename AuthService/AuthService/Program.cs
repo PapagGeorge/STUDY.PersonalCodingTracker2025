@@ -1,3 +1,4 @@
+using Application;
 using Infrastructure;
 
 namespace AuthService
@@ -12,6 +13,9 @@ namespace AuthService
 
             builder.Services.AddControllers();
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddApplication();
+            builder.Services.AddJwtAuthentication(builder.Configuration);
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
