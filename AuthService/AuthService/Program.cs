@@ -1,6 +1,6 @@
 ﻿using Application;
 using Infrastructure;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.OpenApi.Models;
 
 namespace AuthService
@@ -28,6 +28,7 @@ namespace AuthService
                 settings.SourceName = "AuthService";
                 settings.LogName = "AuthService";
             });
+            builder.Logging.AddFilter<EventLogLoggerProvider>("", LogLevel.Information);
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -47,6 +48,8 @@ namespace AuthService
 
             app.MapControllers();
 
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("AuthService started and logging is configured.");
 
             app.Run();
         }
@@ -88,12 +91,13 @@ namespace AuthService
                                 Id = "Bearer"
                             },
                             Scheme = "bearer",
-                            Name = "Bearer",
+                            Name = "Authorization",
                             In = ParameterLocation.Header
                         },
                         Array.Empty<string>()
                     }
                 });
+
             });
         }
 
