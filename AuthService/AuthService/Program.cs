@@ -1,4 +1,4 @@
-using Application;
+﻿using Application;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -23,7 +23,6 @@ namespace AuthService
             builder.Services.AddAuthorization();
 
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole();
             builder.Logging.AddEventLog(settings =>
             {
                 settings.SourceName = "AuthService";
@@ -33,28 +32,21 @@ namespace AuthService
 
             // Configure the HTTP request pipeline.
 
-            app.UseHttpsRedirection();
-            app.UseCors("AllowAll");
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            if(app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
+            app.UseHttpsRedirection();
+
+            app.UseCors("AllowAll");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.MapControllers();
 
-            // Create a scoped service provider to access scoped services like DbContext
-            using (var scope = app.Services.CreateScope())
-            {
-                // Get the AuthDbContext from the DI container
-                var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-
-                // Apply any pending migrations (creates or updates the database schema)
-                await context.Database.MigrateAsync();
-            }
 
             app.Run();
         }
@@ -73,29 +65,35 @@ namespace AuthService
                     Description = "JWT Authentication and Authorization Service"
                 });
 
+                //Correct HTTP Bearer scheme
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
+                    Description = "Enter 'Bearer' [space] and then your token.\nExample: Bearer abc123",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // lowercase is important for Swagger UI
+                    BearerFormat = "JWT"
                 });
 
+                //Apply Bearer token globally to all endpoints
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
                 {
-                    new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "bearer",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
         }
 

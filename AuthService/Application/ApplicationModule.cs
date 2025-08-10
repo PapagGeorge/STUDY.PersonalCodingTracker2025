@@ -34,7 +34,7 @@ namespace Application
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                     ValidateIssuer = true,
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidateAudience = true,
@@ -52,7 +52,7 @@ namespace Application
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
 
-                        if (string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
                         {
                             context.Token = accessToken;
                         }

@@ -36,7 +36,6 @@ public class AuthController : ControllerBase
                 username = response.Username,
                 email = response.Email,
                 accessToken = response.AccessToken,
-                expiresAt = response.ExpiresAt,
                 roles = response.Roles
             });
         }
@@ -68,7 +67,6 @@ public class AuthController : ControllerBase
                 username = response.Username,
                 email = response.Email,
                 accessToken = response.AccessToken,
-                expiresAt = response.ExpiresAt,
                 roles = response.Roles
             });
         }
@@ -106,7 +104,6 @@ public class AuthController : ControllerBase
                 username = response.Username,
                 email = response.Email,
                 accessToken = response.AccessToken,
-                expiresAt = response.ExpiresAt,
                 roles = response.Roles
             });
         }
@@ -122,8 +119,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("revoke-token")]
     [Authorize]
+    [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] AuthDTOs.RevokeTokenRequest? request = null)
     {
         try
@@ -151,8 +148,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("me")]
     [Authorize]
+    [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
         try
@@ -189,8 +186,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("logout")]
     [Authorize]
+    [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
         try

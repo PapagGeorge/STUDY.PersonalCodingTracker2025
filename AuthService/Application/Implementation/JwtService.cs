@@ -30,7 +30,7 @@ namespace Application.Implementation
         public string GenerateAccessToken(User user, List<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            var key = Encoding.UTF8.GetBytes(_secretKey);
 
             var claims = new List<Claim>()
             {
@@ -81,7 +81,7 @@ namespace Application.Implementation
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_secretKey);
+                var key = Encoding.UTF8.GetBytes(_secretKey);
 
                 var validationParameters = new TokenValidationParameters
                 {
@@ -108,7 +108,7 @@ namespace Application.Implementation
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_secretKey);
+                var key = Encoding.UTF8.GetBytes(_secretKey);
 
                 var validationParameters = new TokenValidationParameters
                 {
