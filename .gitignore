@@ -3,20 +3,21 @@ bin/
 obj/
 out/
 
-# Rider
+# Rider IDE
 .idea/
+*.iml
 
 # Visual Studio
+.vs/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
-.vs/
 
-# VS Code (optional)
+# VS Code
 .vscode/
 
-# NuGet
+# NuGet packages
 *.nupkg
 *.snupkg
 *.nuspec
@@ -28,3 +29,6 @@ packages/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Optional: JetBrains cache and project-specific files
+*.iws
