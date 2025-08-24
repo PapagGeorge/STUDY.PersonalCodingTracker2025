@@ -168,12 +168,12 @@ namespace Application.Implementation
             }
             catch (SecurityTokenInvalidSignatureException ex)
             {
-                _logger.LogWarning(ex, "JWT validation failed: invalid signature");
+                _logger.LogWarning(ex, "JWT validation failed: invalid signature. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _issuer, _audience);
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while validating JWT");
+                _logger.LogError(ex, "Unexpected error while validating JWT. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _issuer, _audience);
                 return false;
             }
         }

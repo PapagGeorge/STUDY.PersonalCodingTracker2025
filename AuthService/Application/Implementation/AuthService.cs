@@ -53,10 +53,17 @@ namespace Application.Implementation
             var user = await _userRepository.GetByEmailAsync(request.Email);
 
             if (user == null || !user.IsActive)
+            {
+                _logger.LogWarning("Failed login attempt. Email={Email}, IP={IpAddress}", request.Email, ipAddress);
                 throw new UnauthorizedAccessException("Invalid Credentials");
+            }
 
-            if(!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
+            if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                _logger.LogWarning("Failed login attempt. Invalid password. UserId={UserId}, Email={Email}, IP={IpAddress}",
+                    user.Id, request.Email, ipAddress);
                 throw new UnauthorizedAccessException("Invalid Credentials");
+            }
 
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
             var accessToken = _jwtService.GenerateAccessToken(user, roles);
@@ -65,7 +72,7 @@ namespace Application.Implementation
 
             await _refreshTokenRepository.AddAsync(refreshToken);
 
-            _logger.LogInformation($"User {user.Id} logged in successfully");
+            _logger.LogInformation("User logged in successfully. UserId={UserId}, Email={Email}, IP={IpAddress}", user.Id, user.Email, ipAddress);
 
             return new AuthDTOs.AuthResponse(
                 user.Id,
@@ -83,11 +90,17 @@ namespace Application.Implementation
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
             if (refreshToken == null || !refreshToken.IsActive)
+            {
+                _logger.LogWarning("Invalid refresh token attempt. IP={IpAddress}", ipAddress);
                 throw new UnauthorizedAccessException("Invalid refresh token");
+            }
 
             var user = await _userRepository.GetByIdAsync(refreshToken.UserId);
             if (user == null || !user.IsActive)
+            {
+                _logger.LogWarning("Refresh token for inactive/nonexistent user. UserId={UserId}, IP={IpAddress}", refreshToken.UserId, ipAddress);
                 throw new UnauthorizedAccessException("User not found or inactive");
+            }
 
             //Revoke old token
             refreshToken.RevokedAt = DateTime.UtcNow;
@@ -104,6 +117,9 @@ namespace Application.Implementation
             await _refreshTokenRepository.UpdateAsync(refreshToken);
             await _refreshTokenRepository.AddAsync(newRefreshToken);
 
+            _logger.LogInformation("Refresh token rotated. UserId={UserId}, OldTokenId={OldTokenId}, NewTokenId={NewTokenId}, IP={IpAddress}",
+                user.Id, refreshToken.Id, newRefreshToken.Id, ipAddress);
+
             return new AuthDTOs.AuthResponse(
                 user.Id,
                 user.UserName,
@@ -118,10 +134,16 @@ namespace Application.Implementation
         public async Task<AuthDTOs.AuthResponse> RegisterAsync(AuthDTOs.RegisterRequest request, string ipAddress)
         {
             if (await _userRepository.GetByEmailAsync(request.Email) != null)
+            {
+                _logger.LogWarning("Registration failed. Email already exists. Email={Email}, IP={IpAddress}", request.Email, ipAddress);
                 throw new InvalidOperationException("User with this Email already exists");
+            }
 
             if (await _userRepository.GetByUsernameAsync(request.UserName) != null)
+            {
+                _logger.LogWarning("Registration failed. Username taken. Username={Username}, IP={IpAddress}", request.UserName, ipAddress);
                 throw new InvalidOperationException("Username already taken");
+            }
 
             var user = new User
             {
@@ -152,7 +174,8 @@ namespace Application.Implementation
 
             await _refreshTokenRepository.AddAsync(refreshToken);
 
-            _logger.LogInformation($"New User registered: {user.Id}");
+            _logger.LogInformation("New user registered. UserId={UserId}, Username={Username}, Email={Email}, IP={IpAddress}",
+            user.Id, user.UserName, user.Email, ipAddress);
 
             return new AuthDTOs.AuthResponse(
                 user.Id,
@@ -169,17 +192,26 @@ namespace Application.Implementation
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
             if (refreshToken == null || !refreshToken.IsActive)
+            {
+                _logger.LogWarning(
+                "Attempt to revoke invalid or already revoked token. UserId={UserId}, TokenId={TokenId}, IP={IpAddress}",
+                refreshToken?.UserId,
+                refreshToken?.Id,
+                ipAddress);
+
                 throw new InvalidOperationException("Token not found or already revoked");
+            }
 
             refreshToken.RevokedAt = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
 
             await _refreshTokenRepository.UpdateAsync(refreshToken);
 
-            _logger.LogInformation($"Refresh token revoked for user {refreshToken.UserId}");
+            _logger.LogInformation("Refresh token revoked. UserId={UserId}, TokenId={TokenId}, IP={IpAddress}",
+            refreshToken.UserId, refreshToken.Id, ipAddress);
         }
 
-        public  async Task<bool> ValidateTokenAsync(string token)
+        public async Task<bool> ValidateTokenAsync(string token)
         {
             return _jwtService.ValidateToken(token);
         }

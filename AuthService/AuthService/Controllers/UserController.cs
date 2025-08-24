@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Application.Interfaces;
+using System.Net;
 using System.Security.Claims;
 
 namespace AuthService.Controllers;
@@ -23,17 +24,21 @@ public class UserController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUser(Guid id)
     {
+        var ipAddress = GetIpAddress();
         try
         {
             var user = await _authService.GetUserByIdAsync(id);
             if (user == null)
+            {
+                _logger.LogWarning("User not found. UserId={UserId}, IP={IpAddress}", id, ipAddress);
                 return NotFound();
+            }
 
             return Ok(user);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user {UserId}", id);
+            _logger.LogError(ex, "Error retrieving user. UserId={UserId}, IP={IpAddress}", id, ipAddress);
             return StatusCode(500, new { message = "An error occurred" });
         }
     }
@@ -41,22 +46,38 @@ public class UserController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
+        var ipAddress = GetIpAddress();
         try
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                _logger.LogWarning("Unauthorized access attempt to profile. IP={IpAddress}", ipAddress);
                 return Unauthorized();
+            }
 
             var user = await _authService.GetUserByIdAsync(userId);
             if (user == null)
+            {
+                _logger.LogWarning("Profile not found for UserId={UserId}, IP={IpAddress}", userId, ipAddress);
                 return NotFound();
+            }
 
             return Ok(user);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user profile");
+            _logger.LogError(ex, "Error retrieving profile. IP={IpAddress}", ipAddress);
             return StatusCode(500, new { message = "An error occurred" });
         }
+    }
+
+    private string GetIpAddress()
+    {
+        var ipAddress = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (string.IsNullOrEmpty(ipAddress))
+            ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        return ipAddress ?? "Unknown";
     }
 }

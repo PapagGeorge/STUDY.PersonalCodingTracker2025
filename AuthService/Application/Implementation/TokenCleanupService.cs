@@ -32,11 +32,11 @@ namespace Application.Implementation
                     var refreshTokenRepository = scope.ServiceProvider.GetRequiredService<IRefreshTokenRepository>();
 
                     await refreshTokenRepository.RemoveExpiredTokensAsync();
-                    _logger.LogInformation("Expired tokens cleanup completed");
+                    _logger.LogInformation("Expired tokens cleanup completed at {Timestamp}", DateTime.UtcNow);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occured during token cleanup");
+                    _logger.LogError(ex, "Error occurred during token cleanup at {Timestamp}", DateTime.UtcNow);
                 }
             }
         }

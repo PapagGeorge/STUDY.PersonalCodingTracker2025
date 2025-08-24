@@ -41,12 +41,12 @@ public class AuthController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning("Login failed for email {Email}: {Error}", request.Email, ex.Message);
+            _logger.LogWarning(ex, "Login failed for email {Email} from IP {IpAddress}", request.Email, GetIpAddress());
             return Unauthorized(new { message = "Invalid credentials" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during login for email {Email}", request.Email);
+            _logger.LogError(ex, "Unexpected error during login for email {Email} from IP {IpAddress}", request.Email, GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during login" });
         }
     }
@@ -72,12 +72,12 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning("Registration failed for email {Email}: {Error}", request.Email, ex.Message);
+            _logger.LogWarning(ex, "Registration failed for email {Email} from IP {IpAddress}", request.Email, GetIpAddress());
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during registration for email {Email}", request.Email);
+            _logger.LogError(ex, "Unexpected error during registration for email {Email} from IP {IpAddress}", request.Email, GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during registration" });
         }
     }
@@ -90,7 +90,10 @@ public class AuthController : ControllerBase
             var refreshToken = GetRefreshTokenFromCookie() ?? Request.Headers["RefreshToken"].FirstOrDefault();
 
             if (string.IsNullOrEmpty(refreshToken))
+            {
+                _logger.LogWarning("Refresh token request missing from IP {IpAddress}", GetIpAddress());
                 return BadRequest(new { message = "Refresh token is required" });
+            }
 
             var ipAddress = GetIpAddress();
             var request = new AuthDTOs.RefreshTokenRequest(refreshToken);
@@ -109,12 +112,12 @@ public class AuthController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning("Token refresh failed: {Error}", ex.Message);
+            _logger.LogWarning(ex, "Refresh token validation failed from IP {IpAddress}", GetIpAddress());
             return Unauthorized(new { message = "Invalid refresh token" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token refresh");
+            _logger.LogError(ex, "Unexpected error during refresh token from IP {IpAddress}", GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during token refresh" });
         }
     }
@@ -128,7 +131,10 @@ public class AuthController : ControllerBase
             var token = request?.RefreshToken ?? GetRefreshTokenFromCookie();
 
             if (string.IsNullOrEmpty(token))
+            {
+                _logger.LogWarning("Revoke token request missing from IP {IpAddress}", GetIpAddress());
                 return BadRequest(new { message = "Token is required" });
+            }
 
             var ipAddress = GetIpAddress();
             var revokeRequest = new AuthDTOs.RevokeTokenRequest(token);
@@ -138,12 +144,12 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning("Token revocation failed: {Error}", ex.Message);
+            _logger.LogWarning(ex, "Token revocation failed from IP {IpAddress}", GetIpAddress());
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token revocation");
+            _logger.LogError(ex, "Unexpected error during token revocation from IP {IpAddress}", GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during token revocation" });
         }
     }
@@ -166,7 +172,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting current user");
+            _logger.LogError(ex, "Unexpected error fetching current user from IP {IpAddress}", GetIpAddress());
             return StatusCode(500, new { message = "An error occurred" });
         }
     }
@@ -181,7 +187,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating token");
+            _logger.LogError(ex, "Unexpected error during token validation from IP {IpAddress}", GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during token validation" });
         }
     }
@@ -207,7 +213,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during logout");
+            _logger.LogError(ex, "Unexpected error during logout from IP {IpAddress}", GetIpAddress());
             return StatusCode(500, new { message = "An error occurred during logout" });
         }
     }
