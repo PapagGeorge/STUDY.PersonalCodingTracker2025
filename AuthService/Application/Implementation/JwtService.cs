@@ -1,7 +1,9 @@
 ﻿using Application.Interfaces;
+using Application.Types;
 using Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,28 +14,18 @@ namespace Application.Implementation
 {
     public class JwtService : IJwtService
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _secretKey;
-        private readonly string _issuer;
-        private readonly string _audience;
-        private readonly int _accessTokenExpirationMinutes;
-        private readonly int _refreshTokenExpirationDays;
+        private readonly JwtOptions _jwtOptions;
         private readonly ILogger<JwtService> _logger;
 
-        public JwtService(IConfiguration configuration, ILogger<JwtService> logger)
+        public JwtService(IOptions<JwtOptions> options, ILogger<JwtService> logger)
         {
-            _configuration = configuration;
-            _secretKey = configuration["Jwt:SecretKey"] ?? throw new ArgumentNullException("Jwt:SecretKey");
-            _issuer = configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer");
-            _audience = configuration["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience");
-            _accessTokenExpirationMinutes = int.Parse(configuration["Jwt:AccessTokenExpirationMinutes"] ?? "15");
-            _refreshTokenExpirationDays = int.Parse(configuration["Jwt:RefreshTokenExpirationDays"] ?? "7");
+            _jwtOptions = options.Value;
             _logger = logger;
         }
         public string GenerateAccessToken(User user, List<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_secretKey);
+            var key = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
 
             var claims = new List<Claim>()
             {
@@ -53,9 +45,9 @@ namespace Application.Implementation
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes),
-                Issuer = _issuer,
-                Audience = _audience,
+                Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
@@ -73,7 +65,7 @@ namespace Application.Implementation
             {
                 Id = Guid.NewGuid(),
                 Token = Convert.ToBase64String(randomBytes),
-                ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays),
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
@@ -84,16 +76,16 @@ namespace Application.Implementation
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_secretKey);
+                var key = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = _issuer,
+                    ValidIssuer = _jwtOptions.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = _audience,
+                    ValidAudience = _jwtOptions.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
@@ -108,12 +100,12 @@ namespace Application.Implementation
             }
             catch (SecurityTokenInvalidIssuerException ex)
             {
-                _logger.LogWarning(ex, "Token has invalid issuer. Expected: {ExpectedIssuer}", _issuer);
+                _logger.LogWarning(ex, "Token has invalid issuer. Expected: {ExpectedIssuer}", _jwtOptions.Issuer);
                 return null;
             }
             catch (SecurityTokenInvalidAudienceException ex)
             {
-                _logger.LogWarning(ex, "Token has invalid audience. Expected: {ExpectedAudience}", _audience);
+                _logger.LogWarning(ex, "Token has invalid audience. Expected: {ExpectedAudience}", _jwtOptions.Audience);
                 return null;
             }
             catch (SecurityTokenInvalidSignatureException ex)
@@ -134,16 +126,16 @@ namespace Application.Implementation
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_secretKey);
+                var key = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = _issuer,
+                    ValidIssuer = _jwtOptions.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = _audience,
+                    ValidAudience = _jwtOptions.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
@@ -158,22 +150,22 @@ namespace Application.Implementation
             }
             catch (SecurityTokenInvalidIssuerException ex)
             {
-                _logger.LogWarning(ex, "JWT validation failed: invalid issuer. Expected: {ExpectedIssuer}", _issuer);
+                _logger.LogWarning(ex, "JWT validation failed: invalid issuer. Expected: {ExpectedIssuer}", _jwtOptions.Issuer);
                 return false;
             }
             catch (SecurityTokenInvalidAudienceException ex)
             {
-                _logger.LogWarning(ex, "JWT validation failed: invalid audience. Expected: {ExpectedAudience}", _audience);
+                _logger.LogWarning(ex, "JWT validation failed: invalid audience. Expected: {ExpectedAudience}", _jwtOptions.Audience);
                 return false;
             }
             catch (SecurityTokenInvalidSignatureException ex)
             {
-                _logger.LogWarning(ex, "JWT validation failed: invalid signature. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _issuer, _audience);
+                _logger.LogWarning(ex, "JWT validation failed: invalid signature. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _jwtOptions.Issuer, _jwtOptions.Audience);
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while validating JWT. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _issuer, _audience);
+                _logger.LogError(ex, "Unexpected error while validating JWT. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _jwtOptions.Issuer, _jwtOptions.Audience);
                 return false;
             }
         }

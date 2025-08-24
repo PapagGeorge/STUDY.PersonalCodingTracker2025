@@ -1,5 +1,6 @@
 ﻿using Application.Implementation;
 using Application.Interfaces;
+using Application.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,12 +11,13 @@ namespace Application
 {
     public static class ApplicationModule
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddHostedService<TokenCleanupService>();
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
             return services;
         }
 

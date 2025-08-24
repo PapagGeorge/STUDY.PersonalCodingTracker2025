@@ -18,7 +18,7 @@ namespace AuthService
             ConfigureSwaggerWithJwt(builder.Services);
             ConfigureCors(builder.Services);
             builder.Services.AddInfrastructure(builder.Configuration);
-            builder.Services.AddApplication();
+            builder.Services.AddApplication(builder.Configuration);
             builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddAuthorization();
 
