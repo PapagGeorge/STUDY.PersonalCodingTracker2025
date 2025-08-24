@@ -33,13 +33,21 @@ namespace Application.Implementation
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique id for the token
                 new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64), // Issued at
                 new(ClaimTypes.Name, user.UserName),
-                new(ClaimTypes.Email, user.Email),
-                new(CustomClaims.FirstName, user.FirstName),
-                new(CustomClaims.LastName, user.LastName)
+                new(ClaimTypes.Email, user.Email)
             };
 
+            // Include optional PII claims only if enabled and values exist
+            if (_jwtOptions.IncludeNamesInToken)
+            {
+                if (!string.IsNullOrEmpty(user.FirstName))
+                    claims.Add(new(CustomClaims.FirstName, user.FirstName));
+
+                if (!string.IsNullOrEmpty(user.LastName))
+                    claims.Add(new(CustomClaims.LastName, user.LastName));
+            }
+
             //Add role claims
-            foreach(var role in roles)
+            foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
