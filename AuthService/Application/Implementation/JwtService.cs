@@ -29,11 +29,13 @@ namespace Application.Implementation
 
             var claims = new List<Claim>()
             {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // subject = user identifier
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique id for the token
+                new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64), // Issued at
                 new(ClaimTypes.Name, user.UserName),
                 new(ClaimTypes.Email, user.Email),
-                new("firstName", user.FirstName),
-                new("lastName", user.LastName)
+                new(CustomClaims.FirstName, user.FirstName),
+                new(CustomClaims.LastName, user.LastName)
             };
 
             //Add role claims
