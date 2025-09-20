@@ -13,7 +13,7 @@ public class RecipeRepository : IRecipeRepository
             _context = context;
         }
         
-        public async Task<Recipe?> GetByIdAsync(int id)
+        public async Task<Recipe?> GetByIdAsync(Guid id)
         {
             return await _context.Recipes
                 .Include(r => r.Ingredients)
@@ -72,7 +72,7 @@ public class RecipeRepository : IRecipeRepository
                 .ToListAsync();
         }
         
-        public async Task<int> CreateAsync(Recipe recipe)
+        public async Task<Guid> CreateAsync(Recipe recipe)
         {
             _context.Recipes.Add(recipe);
             await _context.SaveChangesAsync();
@@ -85,7 +85,7 @@ public class RecipeRepository : IRecipeRepository
             await _context.SaveChangesAsync();
         }
         
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var recipe = await _context.Recipes.FindAsync(id);
             if (recipe != null)

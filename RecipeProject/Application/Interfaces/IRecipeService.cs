@@ -4,11 +4,11 @@ namespace Application.Interfaces;
 
 public interface IRecipeService
 {
-    Task<RecipeDto?> GetRecipeByIdAsync(int id);
-    Task<RecipeDto?> GetScaledRecipeAsync(int id, int servings);
+    Task<RecipeDto?> GetRecipeByIdAsync(Guid id);
+    Task<RecipeDto?> GetScaledRecipeAsync(Guid id, int servings);
     Task<IEnumerable<RecipeDto>> SearchRecipesAsync(string searchTerm);
-    Task<int> CreateRecipeAsync(RecipeDto recipeDto);
+    Task<Guid> CreateRecipeAsync(RecipeDto recipeDto);
     Task UpdateRecipeAsync(RecipeDto recipeDto);
-    Task DeleteRecipeAsync(int id);
+    Task DeleteRecipeAsync(Guid id);
     Task<NutritionResponseDto> GetNutritionDataAsync(RecipeDto recipe);
 }

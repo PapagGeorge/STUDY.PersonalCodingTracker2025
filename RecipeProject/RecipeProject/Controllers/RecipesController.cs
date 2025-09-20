@@ -16,7 +16,7 @@ public class RecipesController : ControllerBase
         }
         
         [HttpGet("{id}")]
-        public async Task<ActionResult<RecipeDto>> GetRecipe(int id)
+        public async Task<ActionResult<RecipeDto>> GetRecipe(Guid id)
         {
             var recipe = await _recipeService.GetRecipeByIdAsync(id);
             
@@ -29,7 +29,7 @@ public class RecipesController : ControllerBase
         }
         
         [HttpGet("{id}/scale")]
-        public async Task<ActionResult<RecipeDto>> GetScaledRecipe(int id, [FromQuery] int servings)
+        public async Task<ActionResult<RecipeDto>> GetScaledRecipe(Guid id, [FromQuery] int servings)
         {
             if (servings <= 0)
             {
@@ -85,7 +85,7 @@ public class RecipesController : ControllerBase
         }
         
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeDto recipeDto)
+        public async Task<IActionResult> UpdateRecipe(Guid id, [FromBody] RecipeDto recipeDto)
         {
             if (id != recipeDto.Id)
             {
@@ -102,7 +102,7 @@ public class RecipesController : ControllerBase
         }
         
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRecipe(int id)
+        public async Task<IActionResult> DeleteRecipe(Guid id)
         {
             await _recipeService.DeleteRecipeAsync(id);
             return NoContent();

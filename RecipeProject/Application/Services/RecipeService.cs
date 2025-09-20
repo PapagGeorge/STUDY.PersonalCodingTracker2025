@@ -22,13 +22,13 @@ public class RecipeService : IRecipeService
             _recipeScaler = recipeScaler;
         }
         
-        public async Task<RecipeDto?> GetRecipeByIdAsync(int id)
+        public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id)
         {
             var recipe = await _unitOfWork.Recipes.GetByIdAsync(id);
             return recipe != null ? MapToDto(recipe) : null;
         }
         
-        public async Task<RecipeDto?> GetScaledRecipeAsync(int id, int servings)
+        public async Task<RecipeDto?> GetScaledRecipeAsync(Guid id, int servings)
         {
             var recipe = await _unitOfWork.Recipes.GetByIdAsync(id);
             if (recipe == null) return null;
@@ -44,7 +44,7 @@ public class RecipeService : IRecipeService
             return recipes.Select(MapToDto);
         }
         
-        public async Task<int> CreateRecipeAsync(RecipeDto recipeDto)
+        public async Task<Guid> CreateRecipeAsync(RecipeDto recipeDto)
         {
             var recipe = MapToEntity(recipeDto);
             recipe.CreatedAt = DateTime.UtcNow;
@@ -76,7 +76,7 @@ public class RecipeService : IRecipeService
             await _unitOfWork.SaveChangesAsync();
         }
         
-        public async Task DeleteRecipeAsync(int id)
+        public async Task DeleteRecipeAsync(Guid id)
         {
             await _unitOfWork.Recipes.DeleteAsync(id);
             await _unitOfWork.SaveChangesAsync();

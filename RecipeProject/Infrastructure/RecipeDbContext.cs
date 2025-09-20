@@ -25,8 +25,12 @@ public class RecipeDbContext : DbContext
             // Configure many-to-many relationship for Recipe-Ingredient
             modelBuilder.Entity<RecipeIngredient>()
                 .HasKey(ri => new { ri.RecipeId, ri.IngredientId });
-                
+
             modelBuilder.Entity<RecipeIngredient>()
+                .Property(ri => ri.Amount)
+                .HasPrecision(18, 4);
+
+        modelBuilder.Entity<RecipeIngredient>()
                 .HasOne(ri => ri.Recipe)
                 .WithMany(r => r.Ingredients)
                 .HasForeignKey(ri => ri.RecipeId);

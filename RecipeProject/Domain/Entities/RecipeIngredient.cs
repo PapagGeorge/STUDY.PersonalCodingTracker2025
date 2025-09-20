@@ -2,10 +2,10 @@ namespace Domain;
 
 public class RecipeIngredient
 {
-    public int RecipeId { get; set; }
+    public Guid RecipeId { get; set; }
     public Recipe Recipe { get; set; } = null!;
         
-    public int IngredientId { get; set; }
+    public Guid IngredientId { get; set; }
     public Ingredient Ingredient { get; set; } = null!;
         
     public decimal Amount { get; set; }

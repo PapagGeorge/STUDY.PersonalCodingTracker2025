@@ -15,7 +15,7 @@ public static class InfrastructureModule
     {
         // Register DbContext
         services.AddDbContext<RecipeDbContext>(options =>
-            options.UseSqlite(
+            options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection")));
                     
         // Register repositories
