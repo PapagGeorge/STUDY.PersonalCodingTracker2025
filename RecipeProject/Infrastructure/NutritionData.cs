@@ -11,7 +11,6 @@ public class NutritionData : INutritionData
     private readonly ILogger<NutritionData> _logger;
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly IConfiguration _configuration;
 
     public NutritionData(HttpClient httpClient,
         ILogger<NutritionData> logger,
@@ -19,7 +18,6 @@ public class NutritionData : INutritionData
     {
         _logger = logger;
         _httpClient = httpClient;
-        _configuration = configuration;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -30,7 +28,7 @@ public class NutritionData : INutritionData
     {
         try
         {
-            var url = $"nutrition/getNutritionDetails?query={Uri.EscapeDataString(query)}";
+            var url = $"Nutrition/getnutritionData?Query={Uri.EscapeDataString(query)}";
 
             var response = await _httpClient.GetAsync(url);
 

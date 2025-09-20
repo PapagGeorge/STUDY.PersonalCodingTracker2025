@@ -1,9 +1,10 @@
+using Application;
+using Application.Interfaces;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Application.Interfaces;
-using Application;
-using Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure;
 
@@ -21,14 +22,18 @@ public static class InfrastructureModule
         // Register repositories
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddHttpClient<INutritionData, NutritionData>(client =>
+        services.AddHttpClient<INutritionData, NutritionData>((sp, client) =>
         {
-            client.BaseAddress = new Uri(configuration["NutritionService:BaseUrl"]);
+            var settings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
+            client.BaseAddress = new Uri(settings.NutritionServiceBaseUrl);
         });
-            
+        services.AddScoped<INutritionService, NutritionService>();
+
+
         // Register domain services
         services.AddScoped<RecipeScalerService>();
-        
+        services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
+
         return services;
     }
 }
