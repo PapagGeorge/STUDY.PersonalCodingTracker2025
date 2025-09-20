@@ -67,7 +67,7 @@ namespace Application.Implementation
 
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
             var accessToken = _jwtService.GenerateAccessToken(user, roles);
-            var refreshToken = _jwtService.GenerateRefreshToken(ipAddress);
+            var (rawRefreshToken, refreshToken) = _jwtService.GenerateRefreshToken(ipAddress);
             refreshToken.UserId = user.Id;
 
             await _refreshTokenRepository.AddAsync(refreshToken);
@@ -79,7 +79,7 @@ namespace Application.Implementation
                 user.UserName,
                 user.Email,
                 accessToken,
-                refreshToken.Token,
+                rawRefreshToken,
                 refreshToken.ExpiresAt,
                 roles
                 );
@@ -109,23 +109,24 @@ namespace Application.Implementation
             //Generate new tokens
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
             var accessToken = _jwtService.GenerateAccessToken(user, roles);
-            var newRefreshToken = _jwtService.GenerateRefreshToken(ipAddress);
+            var (rawRefreshToken, refreshTokenEntity) = _jwtService.GenerateRefreshToken(ipAddress);
+            refreshTokenEntity.UserId = user.Id;
 
-            newRefreshToken.UserId = user.Id;
-            refreshToken.ReplacedByToken = newRefreshToken.Token;
+            // Link old to new
+            refreshToken.ReplacedByToken = refreshTokenEntity.Token;
 
             await _refreshTokenRepository.UpdateAsync(refreshToken);
-            await _refreshTokenRepository.AddAsync(newRefreshToken);
+            await _refreshTokenRepository.AddAsync(refreshTokenEntity);
 
             _logger.LogInformation("Refresh token rotated. UserId={UserId}, OldTokenId={OldTokenId}, NewTokenId={NewTokenId}, IP={IpAddress}",
-                user.Id, refreshToken.Id, newRefreshToken.Id, ipAddress);
+            user.Id, refreshToken.Id, refreshTokenEntity.Id, ipAddress);
 
             return new AuthDTOs.AuthResponse(
                 user.Id,
                 user.UserName,
                 user.Email,
                 accessToken,
-                refreshToken.Token,
+                rawRefreshToken,
                 refreshToken.ExpiresAt,
                 roles
                 );
@@ -160,7 +161,7 @@ namespace Application.Implementation
 
             await _userRepository.AddAsync(user);
 
-            //Assign default role
+            // Assign default role
             var defaultRole = await _roleRepository.GetByNameAsync("User");
             if (defaultRole != null)
             {
@@ -169,22 +170,25 @@ namespace Application.Implementation
 
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
             var accessToken = _jwtService.GenerateAccessToken(user, roles);
-            var refreshToken = _jwtService.GenerateRefreshToken(ipAddress);
-            refreshToken.UserId = user.Id;
 
-            await _refreshTokenRepository.AddAsync(refreshToken);
+            // ✅ Generate refresh token (raw + entity)
+            var (rawRefreshToken, refreshTokenEntity) = _jwtService.GenerateRefreshToken(ipAddress);
+            refreshTokenEntity.UserId = user.Id;
+
+            await _refreshTokenRepository.AddAsync(refreshTokenEntity);
 
             _logger.LogInformation("New user registered. UserId={UserId}, Username={Username}, Email={Email}, IP={IpAddress}",
-            user.Id, user.UserName, user.Email, ipAddress);
+                user.Id, user.UserName, user.Email, ipAddress);
 
             return new AuthDTOs.AuthResponse(
-                user.Id,
-                user.UserName,
-                user.Email,
-                accessToken,
-                refreshToken.Token,
-                refreshToken.ExpiresAt,
-                roles);
+            user.Id,
+            user.UserName,
+            user.Email,
+            accessToken,
+            rawRefreshToken,
+            refreshTokenEntity.ExpiresAt,
+            roles
+            );
         }
 
         public async Task RevokeTokenAsync(AuthDTOs.RevokeTokenRequest request, string ipAddress)

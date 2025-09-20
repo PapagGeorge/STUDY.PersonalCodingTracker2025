@@ -16,7 +16,7 @@
             string Username,
             string Email,
             string AccessToken,
-            string RefreshToken,
+            string RawRefreshToken,
             DateTime ExpiresAt,
             List<string> Roles);
 

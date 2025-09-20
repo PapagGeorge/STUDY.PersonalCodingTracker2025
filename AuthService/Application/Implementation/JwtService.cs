@@ -65,21 +65,26 @@ namespace Application.Implementation
             return tokenHandler.WriteToken(token);
         }
 
-        public RefreshToken GenerateRefreshToken(string ipAddress)
+        public (string RawToken, RefreshToken Entity) GenerateRefreshToken(string ipAddress)
         {
             var randomBytes = new byte[64];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
 
-            return new RefreshToken
+            var rawToken = Convert.ToBase64String(randomBytes);
+
+            var refreshToken = new RefreshToken
             {
                 Id = Guid.NewGuid(),
-                Token = Convert.ToBase64String(randomBytes),
+                Token = HashToken(rawToken), //store only hash
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
+
+            return (rawToken, refreshToken);
         }
+
 
         public ClaimsPrincipal? GetPrincipalFromToken(string token)
         {
@@ -130,7 +135,6 @@ namespace Application.Implementation
             }
         }
 
-
         public bool ValidateToken(string token)
         {
             try
@@ -178,6 +182,12 @@ namespace Application.Implementation
                 _logger.LogError(ex, "Unexpected error while validating JWT. ExpectedIssuer={ExpectedIssuer}, ExpectedAudience={ExpectedAudience}", _jwtOptions.Issuer, _jwtOptions.Audience);
                 return false;
             }
+        }
+        private string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(bytes);
         }
     }
 }

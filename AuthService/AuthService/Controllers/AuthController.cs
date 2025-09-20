@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
             var ipAddress = GetIpAddress();
             var response = await _authService.LoginAsync(request, ipAddress);
 
-            SetRefreshTokenCookie(response.RefreshToken);
+            SetRefreshTokenCookie(response.RawRefreshToken);
 
             return Ok(new
             {
@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
             var ipAddress = GetIpAddress();
             var response = await _authService.RegisterAsync(request, ipAddress);
 
-            SetRefreshTokenCookie(response.RefreshToken);
+            SetRefreshTokenCookie(response.RawRefreshToken);
 
             return Ok(new
             {
@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
             var request = new AuthDTOs.RefreshTokenRequest(refreshToken);
             var response = await _authService.RefreshTokenAsync(request, ipAddress);
 
-            SetRefreshTokenCookie(response.RefreshToken);
+            SetRefreshTokenCookie(response.RawRefreshToken);
 
             return Ok(new
             {

@@ -1,6 +1,8 @@
 ﻿using Application.Interfaces;
 using Domain;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Infrastructure.Repoitories
 {
@@ -25,11 +27,13 @@ namespace Infrastructure.Repoitories
                 .ToListAsync();
         }
 
-        public async Task<RefreshToken?> GetByTokenAsync(string token)
+        public async Task<RefreshToken?> GetByTokenAsync(string rawToken)
         {
+            var hashed = HashToken(rawToken);
+
             return await _context.RefreshTokens
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.Token == token);
+                .FirstOrDefaultAsync(rt => rt.Token == hashed);
         }
 
         public async Task RemoveExpiredTokensAsync()
@@ -66,6 +70,13 @@ namespace Infrastructure.Repoitories
         {
             _context.RefreshTokens.Update(refreshToken);
             await _context.SaveChangesAsync();
+        }
+
+        private static string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(bytes);
         }
     }
 }
